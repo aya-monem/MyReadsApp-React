@@ -1,29 +1,50 @@
 import React, {Component} from 'react'
 import { Link } from 'react-router-dom'
+import * as BooksAPI from './BooksAPI'
+import ShelfChanger from './ShelfChanger'
 
-class SearchBooks extends Component {  
+class SearchBooks extends Component { 
+  state = {
+      query : "",
+      searchBooks :[],
+      searchError : false  
+  }
+  
+        // when user change input field   (SearchBooks component)
+  handleInputChange = event => {
+    const query = event.target.value;
+    this.setState({query});
+     // all possibles of query 
+
+   if (query){
+    BooksAPI.search(query)
+    .then(srBooks => {
+         if(srBooks.length > 0){
+          this.setState({searchBooks : srBooks, searchError : false});
+          }
+          else {this.setState({searchBooks : [], searchError : true})}
+         })
+    // in case of query is empty (reset states)
+   } else { this.setState({searchBooks : [], searchError : false, query : ""}) }
+
+  } 
+  
 render(){
-    const {searchBooks , searchError} = this.props
+    const {query ,searchBooks , searchError} = this.state;
     // filter search books before displaying them (has thumbunial and authors);
     const searchBooksAfterFilter = searchBooks.filter(b => ((b.imageLinks !== undefined) && (b.authors !== undefined)));
+      //searchBooksAfterFilter.map(book => book.shelf = "none");  
+          
    return (
         <div className="search-books">
             <div className="search-books-bar">
               <Link to="/" className="close-search">Close</Link>
                <div className="search-books-input-wrapper">
-                  {/*
-                    NOTES: The search from BooksAPI is limited to a particular set of search terms.
-                    You can find these search terms here:
-                    https://github.com/udacity/reactnd-project-myreads-starter/blob/master/SEARCH_TERMS.md
-
-                    However, remember that the BooksAPI.search method DOES search by title or author. So, don't worry if
-                    you don't find a specific author or title. Every search is limited by search terms.
-                  */}
                   <input
                   type="text" 
                   placeholder="Search by title or author"
-                  value={this.props.query}
-                  onChange={this.props.inputChange}
+                  value={query}
+                  onChange={this.handleInputChange}
                   />
                </div>
             </div>
@@ -34,15 +55,16 @@ render(){
                 <h3 style={{textAlign:"center" , color:"grey"}}>No results match</h3>
                 }
 
-                                    {/* // case 2 no error , no books */}
-                {/* {searchError === false && searchBooks === [] && 
-                <h3 style={{textAlign:"center" , color:"grey"}}>Search Result: {searchBooks.length} books</h3>
-                } */}
+                                     {/* case 2 no error , no books  */}
+                {searchError === false && searchBooks === [] && 
+                <h3 style={{textAlign:"center" , color:"grey"}}>Search Result</h3>
+                }
+
                           {/* //case 3 (have books finally) */}
                  { searchError === false && searchBooks.length > 0 &&
                  <div>
 
-                  <h3 style={{textAlign:"center" , color:"grey"}}>Search Result: {searchBooks.length} books</h3>
+                  <h3 style={{textAlign:"center" , color:"grey"}}>Search Result: {searchBooksAfterFilter.length} books</h3>
                   <ol className="books-grid">
                       {searchBooksAfterFilter.map((book)=>(
                          <li key={book.id}>
@@ -50,17 +72,20 @@ render(){
                                <div className="book-top">
                                  <div className="book-cover" style={{ width: 128, height: 192, backgroundImage: `url(${book.imageLinks.thumbnail})` }}></div>
                                   <div className="book-shelf-changer">
-                                   <select defaultValue="none" value={book.shelf} onChange={e => this.props.changeShelf(book , e.target.value)}>
-                                     <option value="move" disabled>Move to...</option>
-                                     <option value="currentlyReading">Currently Reading</option>
-                                     <option value="wantToRead">Want to Read</option>
-                                     <option value="read">Read</option>
-                                     <option value="none">None</option>
-                                   </select>
+                                    <ShelfChanger 
+                                     book={book}
+                                     mainPageBooks={this.props.books}
+                                     shownSearchBooks={searchBooksAfterFilter}
+                                     changeShelf={this.props.changeShelf} 
+                                     />
                                   </div> 
                                 </div>
                                <div className="book-title">{book.title}</div>
-                               <div className="book-authors">{book.authors[0]}</div>
+                               <div className="book-authors">
+                                   {book.authors.map((author,index) => (
+                                   <p key={index} style={{marginBottom:0 , marginTop:0}}>{author}</p>
+                                   ))}
+                               </div>
                              </div>
                          </li>
                       ))}
