@@ -1,15 +1,15 @@
-import React, {Component} from 'react'
+import React  from 'react'
 import { Link } from 'react-router-dom';
 import Shelf from './Shelf';
 
 
-class BookShelves extends Component {
- render(){
-  const allBooks = this.props.books;
-  const currentlyReadingBooks = allBooks.filter(b => (b.shelf === "currentlyReading"));
-  const wantToReadBooks = allBooks.filter(b => (b.shelf === "wantToRead"));
-  const readBooks = allBooks.filter(b => (b.shelf === "read"));
-   
+function BookShelves(props){
+  const {books , changeShelf } = props;
+  const shelves = [
+    {name : "Currently Reading" , id : "currentlyReading"},
+    {name : "Want to Read" , id : "wantToRead"},
+    {name : "Read" , id : "read"}
+  ]; 
      return(
         <div className="list-books">
 
@@ -20,29 +20,15 @@ class BookShelves extends Component {
 
         {/* wrapper of the 3 shelves */}
           <div className="list-books-content">
-
-              {/* currentlyReading shelf */}
-                  <Shelf 
-                  books={allBooks}
-                  shelfBooks={currentlyReadingBooks} 
-                  title="Currently Reading"
-                  changeShelf={this.props.changeShelf} />
             
-              
-              {/* want to read shelf */}
-                  <Shelf 
-                  books={allBooks}
-                  shelfBooks={wantToReadBooks} 
-                  title="Want to Read" 
-                  changeShelf={this.props.changeShelf} />
-              
-              
-              {/* Read shelf */}
-                  <Shelf 
-                  books={allBooks}
-                  shelfBooks={readBooks}
-                  title="Read" 
-                  changeShelf={this.props.changeShelf} />
+            {shelves.map(sh => (
+              <Shelf 
+                books={books}
+                title={sh.name}
+                shelfBooks={books.filter(b => b.shelf === sh.id)}
+                key={sh.id}
+                changeShelf={changeShelf} 
+              />))}
             
           </div>
 
@@ -54,7 +40,6 @@ class BookShelves extends Component {
         </div>
       
      )
- }
 };
 
 export default BookShelves;
